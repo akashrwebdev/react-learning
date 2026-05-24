@@ -1,10 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 
 const App = () => {
-  const [length, setLength] = useState(8);
+  const [length, setLength] = useState(6);
   const [numberAllowed, setNumberAllowed] = useState(false);
   const [charAllowed, setCharAllowed] = useState(false);
   const [password, setPassword] = useState("");
+
+  const passwordRef = useRef(null);
+
+  const generatePassword = useCallback(() => {
+    let pass = "";
+    let str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+    if (numberAllowed) str += "0123456789";
+    if (charAllowed) str += "!@#$%^&*";
+
+    for (let i = 0; i < length; i++) {
+      const char = Math.floor(Math.random() * str.length);
+      pass += str.charAt(char);
+    }
+    setPassword(pass);
+  }, [length, numberAllowed, charAllowed]);
+
+  const copyPasswordToClipboard = () => {
+    window.navigator.clipboard.writeText(password);
+    passwordRef.current?.select();
+  };
+
+  useEffect(() => {
+    generatePassword();
+  }, [generatePassword]);
+
+  /* useEffect(() => {
+    generatePassword();
+  }, [length, numberAllowed, charAllowed]); */   // this is also vaild useeffect 
 
   return (
     <div className="bg-black w-full h-screen p-12">
@@ -18,8 +47,11 @@ const App = () => {
             className="outline-none w-full py-1 px-3"
             placeholder="Password"
             readOnly
+            ref={passwordRef}
           />
-          <button className="outline-none bg-blue-700 text-white px-3 py-0.5 shrink-0">
+          <button
+            onClick={copyPasswordToClipboard}
+            className="outline-none bg-blue-700 text-white px-3 py-0.5 shrink-0">
             copy
           </button>
         </div>
@@ -31,9 +63,8 @@ const App = () => {
               max={16}
               value={length}
               onChange={(e) => setLength(e.target.value)}
-              log
             />
-            <label htmlFor="length">Length</label>
+            <label htmlFor="length">Length : {length}</label>
           </div>
           <div className="flex items-center gap-x-1">
             <input
